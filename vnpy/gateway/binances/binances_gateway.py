@@ -74,6 +74,7 @@ ORDERTYPE_VT2BINANCES: Dict[OrderType, Tuple[str, str]] = {
     OrderType.MARKET: ("MARKET", "GTC"),
     OrderType.FAK: ("LIMIT", "IOC"),
     OrderType.FOK: ("LIMIT", "FOK"),
+    OrderType.STOP: ("STOP_MARKET", "GTC"),
 }
 ORDERTYPE_BINANCES2VT: Dict[Tuple[str, str], OrderType] = {v: k for k, v in ORDERTYPE_VT2BINANCES.items()}
 
@@ -419,13 +420,17 @@ class BinancesRestApi(RestClient):
             "side": DIRECTION_VT2BINANCES[req.direction],
             "type": order_type,
             "timeInForce": time_condition,
-            "price": float(req.price),
             "quantity": float(req.volume),
             "newClientOrderId": orderid,
         }
 
         if req.offset == Offset.CLOSE:
             params["reduceOnly"] = True
+
+        if req.type == OrderType.STOP:
+            params["stopPrice"] = float(req.price)
+        else:
+            params["price"] = float(req.price)
 
         if self.usdt_base:
             path = "/fapi/v1/order"
@@ -611,6 +616,7 @@ class BinancesRestApi(RestClient):
                 product=Product.FUTURES,
                 net_position=True,
                 history_data=True,
+                stop_supported=True,
                 gateway_name=self.gateway_name,
             )
             self.gateway.on_contract(contract)
