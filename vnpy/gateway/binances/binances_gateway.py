@@ -419,7 +419,6 @@ class BinancesRestApi(RestClient):
             "symbol": req.symbol,
             "side": DIRECTION_VT2BINANCES[req.direction],
             "type": order_type,
-            "timeInForce": time_condition,
             "quantity": float(req.volume),
             "newClientOrderId": orderid,
         }
@@ -429,8 +428,9 @@ class BinancesRestApi(RestClient):
 
         if req.type == OrderType.STOP:
             params["stopPrice"] = float(req.price)
-        else:
+        elif req.type != OrderType.MARKET:
             params["price"] = float(req.price)
+            params["timeInForce"] = time_condition
 
         if self.usdt_base:
             path = "/fapi/v1/order"

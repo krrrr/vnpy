@@ -506,6 +506,39 @@ class CtaEngine(BaseEngine):
                 strategy, contract, direction, offset, price, volume, lock, net
             )
 
+    def send_market_order(self,
+        strategy: CtaTemplate,
+        direction: Direction,
+        offset: Offset,
+        volume: float,
+        lock: bool,
+        net: bool):
+        """
+        Send a market order to server.
+        """
+        """
+        """
+        contract = self.main_engine.get_contract(strategy.vt_symbol)
+        if not contract:
+            self.write_log(f"委托失败，找不到合约：{strategy.vt_symbol}", strategy)
+            return ""
+
+        # Round order price and volume to nearest incremental value
+        volume = round_to(volume, contract.min_volume)
+
+        return self.send_server_order(
+            strategy,
+            contract,
+            direction,
+            offset,
+            0,
+            volume,
+            OrderType.MARKET,
+            lock,
+            net
+        )
+
+
     def cancel_order(self, strategy: CtaTemplate, vt_orderid: str):
         """
         """
