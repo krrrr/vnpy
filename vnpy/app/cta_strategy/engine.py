@@ -538,6 +538,31 @@ class CtaEngine(BaseEngine):
             net
         )
 
+    def send_fok_order(
+        self,
+        strategy: CtaTemplate,
+        contract: ContractData,
+        direction: Direction,
+        offset: Offset,
+        price: float,
+        volume: float,
+        lock: bool,
+        net: bool
+    ):
+        """
+        Send a limit order to server.
+        """
+        return self.send_server_order(
+            strategy,
+            contract,
+            direction,
+            offset,
+            price,
+            volume,
+            OrderType.FOK,
+            lock,
+            net
+        )
 
     def cancel_order(self, strategy: CtaTemplate, vt_orderid: str):
         """

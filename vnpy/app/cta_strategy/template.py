@@ -248,6 +248,42 @@ class CtaTemplate(ABC):
     ):
         return self.send_market_order(Direction.SHORT, Offset.OPEN, volume=volume)
 
+    def fok_buy(
+        self,
+        price: float,
+        volume: float,
+    ):
+        """
+        Send buy order to open a long position.
+        """
+        return self.send_fok_order(
+            Direction.LONG,
+            Offset.OPEN,
+            price,
+            volume,
+            False,
+            False,
+            False
+        )
+
+    def fok_short(
+        self,
+        price: float,
+        volume: float,
+    ):
+        """
+        Send buy order to open a long position.
+        """
+        return self.send_fok_order(
+            Direction.SHORT,
+            Offset.OPEN,
+            price,
+            volume,
+            False,
+            False,
+            False
+        )
+
     def send_order(
         self,
         direction: Direction,
@@ -283,6 +319,27 @@ class CtaTemplate(ABC):
         if self.trading:
             vt_orderids = self.cta_engine.send_market_order(
                 self, direction, offset, volume, lock, net
+            )
+            return vt_orderids
+        else:
+            return []
+
+    def send_fok_order(
+        self,
+        direction: Direction,
+        offset: Offset,
+        price: float,
+        volume: float,
+        stop: bool = False,
+        lock: bool = False,
+        net: bool = False
+    ):
+        """
+        Send a new order.
+        """
+        if self.trading:
+            vt_orderids = self.cta_engine.send_fok_order(
+                self, direction, offset, price, volume, stop, lock, net
             )
             return vt_orderids
         else:
