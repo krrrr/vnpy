@@ -262,7 +262,6 @@ class CtaTemplate(ABC):
             price,
             volume,
             False,
-            False,
             False
         )
 
@@ -279,7 +278,6 @@ class CtaTemplate(ABC):
             Offset.OPEN,
             price,
             volume,
-            False,
             False,
             False
         )
@@ -330,7 +328,6 @@ class CtaTemplate(ABC):
         offset: Offset,
         price: float,
         volume: float,
-        stop: bool = False,
         lock: bool = False,
         net: bool = False
     ):
@@ -339,7 +336,7 @@ class CtaTemplate(ABC):
         """
         if self.trading:
             vt_orderids = self.cta_engine.send_fok_order(
-                self, direction, offset, price, volume, stop, lock, net
+                self, direction, offset, price, volume, lock, net
             )
             return vt_orderids
         else:

@@ -541,7 +541,6 @@ class CtaEngine(BaseEngine):
     def send_fok_order(
         self,
         strategy: CtaTemplate,
-        contract: ContractData,
         direction: Direction,
         offset: Offset,
         price: float,
@@ -550,8 +549,19 @@ class CtaEngine(BaseEngine):
         net: bool
     ):
         """
-        Send a limit order to server.
+        Send a market order to server.
         """
+        """
+        """
+        contract = self.main_engine.get_contract(strategy.vt_symbol)
+        if not contract:
+            self.write_log(f"委托失败，找不到合约：{strategy.vt_symbol}", strategy)
+            return ""
+
+        # Round order price and volume to nearest incremental value
+        price = round_to(price, contract.pricetick)
+        volume = round_to(volume, contract.min_volume)
+
         return self.send_server_order(
             strategy,
             contract,
