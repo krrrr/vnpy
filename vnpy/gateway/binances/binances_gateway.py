@@ -875,6 +875,7 @@ class BinancesTradeWebsocketApi(WebsocketClient):
             volume=trade_volume,
             datetime=generate_datetime(ord_data["T"]),
             gateway_name=self.gateway_name,
+            commission=float(ord_data["n"])
         )
         self.gateway.on_trade(trade)
 
