@@ -865,6 +865,11 @@ class BinancesTradeWebsocketApi(WebsocketClient):
             return
 
         # Push trade event
+        if "n" in ord_data:
+            cmn = float(ord_data["n"])
+        else:
+            cmn = 0
+
         trade = TradeData(
             symbol=order.symbol,
             exchange=order.exchange,
@@ -875,7 +880,7 @@ class BinancesTradeWebsocketApi(WebsocketClient):
             volume=trade_volume,
             datetime=generate_datetime(ord_data["T"]),
             gateway_name=self.gateway_name,
-            commission=float(ord_data["n"])
+            commission=cmn
         )
         self.gateway.on_trade(trade)
 
