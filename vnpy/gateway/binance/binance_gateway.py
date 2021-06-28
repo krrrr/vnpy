@@ -104,9 +104,9 @@ class BinanceGateway(BaseGateway):
 
     exchanges = [Exchange.BINANCE]
 
-    def __init__(self, event_engine):
+    def __init__(self, event_engine, gateway_name: str = "BINANCE"):
         """Constructor"""
-        super().__init__(event_engine, "BINANCE")
+        super().__init__(event_engine, gateway_name)
 
         self.trade_ws_api = BinanceTradeWebsocketApi(self)
         self.market_ws_api = BinanceDataWebsocketApi(self)

@@ -72,11 +72,15 @@ class MainEngine:
         self.engines[engine.engine_name] = engine
         return engine
 
-    def add_gateway(self, gateway_class: Type[BaseGateway]) -> BaseGateway:
+    def add_gateway(self, gateway_class: Type[BaseGateway], gateway_name: str = None) -> BaseGateway:
         """
         Add gateway.
         """
-        gateway = gateway_class(self.event_engine)
+        if gateway_name is None:
+            gateway = gateway_class(self.event_engine)
+        else:
+            gateway = gateway_class(self.event_engine, gateway_name)
+
         self.gateways[gateway.gateway_name] = gateway
 
         # Add gateway supported exchanges into engine

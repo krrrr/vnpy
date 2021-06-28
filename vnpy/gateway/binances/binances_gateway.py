@@ -96,6 +96,16 @@ TIMEDELTA_MAP: Dict[Interval, timedelta] = {
     Interval.DAILY: timedelta(days=1),
 }
 
+# offset映射
+OFFSET_BINANCE2VT: Dict[Tuple[str, str], Offset] = {
+    ("BOTH", "BUY") : Offset.OPEN,
+    ("BOTH", "SELL") : Offset.CLOSE,
+    ("LONG", "BUY"): Offset.OPEN,
+    ("LONG", "SELL"): Offset.CLOSE,
+    ("SHORT", "BUY"): Offset.CLOSE,
+    ("SHORT", "SELL"): Offset.OPEN,
+}
+
 CHINA_TZ = pytz.timezone("Asia/Shanghai")
 
 
@@ -125,9 +135,9 @@ class BinancesGateway(BaseGateway):
 
     exchanges: Exchange = [Exchange.BINANCE]
 
-    def __init__(self, event_engine: EventEngine):
+    def __init__(self, event_engine: EventEngine, gateway_name: str = "BINANCES"):
         """Constructor"""
-        super().__init__(event_engine, "BINANCES")
+        super().__init__(event_engine, gateway_name)
 
         self.trade_ws_api = BinancesTradeWebsocketApi(self)
         self.market_ws_api = BinancesDataWebsocketApi(self)
@@ -797,6 +807,8 @@ class BinancesTradeWebsocketApi(WebsocketClient):
             self.on_account(packet)
         elif packet["e"] == "ORDER_TRADE_UPDATE":
             self.on_order(packet)
+        elif packet["e"] == "ACCOUNT_CONFIG_UPDATE":
+            self.on_account_config(packet)
 
     def on_account(self, packet: dict) -> None:
         """"""
@@ -849,6 +861,7 @@ class BinancesTradeWebsocketApi(WebsocketClient):
             traded=float(ord_data["z"]),
             status=STATUS_BINANCES2VT[ord_data["X"]],
             datetime=generate_datetime(packet["E"]),
+            offset=OFFSET_BINANCE2VT[(ord_data["ps"],ord_data["S"])],
             gateway_name=self.gateway_name
         )
 
@@ -884,6 +897,8 @@ class BinancesTradeWebsocketApi(WebsocketClient):
         )
         self.gateway.on_trade(trade)
 
+    def on_account_config(self, packet: dict) -> None:
+        print(packet)
 
 class BinancesDataWebsocketApi(WebsocketClient):
     """"""
