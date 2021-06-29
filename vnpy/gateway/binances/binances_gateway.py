@@ -594,6 +594,7 @@ class BinancesRestApi(RestClient):
                 traded=float(d["executedQty"]),
                 status=STATUS_BINANCES2VT.get(d["status"], None),
                 datetime=generate_datetime(d["time"]),
+                offset=OFFSET_BINANCE2VT[(d["positionSide"], d["side"])],
                 gateway_name=self.gateway_name,
             )
             self.gateway.on_order(order)
