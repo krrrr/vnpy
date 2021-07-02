@@ -548,11 +548,6 @@ class CtaEngine(BaseEngine):
         lock: bool,
         net: bool
     ):
-        """
-        Send a market order to server.
-        """
-        """
-        """
         contract = self.main_engine.get_contract(strategy.vt_symbol)
         if not contract:
             self.write_log(f"委托失败，找不到合约：{strategy.vt_symbol}", strategy)
@@ -570,6 +565,37 @@ class CtaEngine(BaseEngine):
             price,
             volume,
             OrderType.FOK,
+            lock,
+            net
+        )
+
+    def send_postonly_order(
+        self,
+        strategy: CtaTemplate,
+        direction: Direction,
+        offset: Offset,
+        price: float,
+        volume: float,
+        lock: bool,
+        net: bool
+    ):
+        contract = self.main_engine.get_contract(strategy.vt_symbol)
+        if not contract:
+            self.write_log(f"委托失败，找不到合约：{strategy.vt_symbol}", strategy)
+            return ""
+
+        # Round order price and volume to nearest incremental value
+        price = round_to(price, contract.pricetick)
+        volume = round_to(volume, contract.min_volume)
+
+        return self.send_server_order(
+            strategy,
+            contract,
+            direction,
+            offset,
+            price,
+            volume,
+            OrderType.POST_ONLY,
             lock,
             net
         )

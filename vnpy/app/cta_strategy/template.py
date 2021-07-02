@@ -282,6 +282,12 @@ class CtaTemplate(ABC):
             False
         )
 
+    def postonly_buy(self, price: float, volume: float):
+        return self.send_postonly_order(Direction.LONG, Offset.OPEN, price, volume)
+
+    def postonly_short(self, price: float, volume: float):
+        return self.send_postonly_order(Direction.SHORT, Offset.OPEN, price, volume)
+
     def send_order(
         self,
         direction: Direction,
@@ -337,6 +343,24 @@ class CtaTemplate(ABC):
         if self.trading:
             vt_orderids = self.cta_engine.send_fok_order(
                 self, direction, offset, price, volume, lock, net
+            )
+            return vt_orderids
+        else:
+            return []
+
+    def send_postonly_order(
+        self,
+        direction: Direction,
+        offset: Offset,
+        price: float,
+        volume: float,
+    ):
+        """
+        Send a new order.
+        """
+        if self.trading:
+            vt_orderids = self.cta_engine.send_postonly_order(
+                self, direction, offset, price, volume, False, False
             )
             return vt_orderids
         else:

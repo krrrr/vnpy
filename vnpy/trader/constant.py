@@ -64,6 +64,7 @@ class OrderType(Enum):
     FAK = "FAK"
     FOK = "FOK"
     RFQ = "询价"
+    POST_ONLY = "PostOnly"
 
 
 class OptionType(Enum):
