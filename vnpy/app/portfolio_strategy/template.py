@@ -174,6 +174,19 @@ class StrategyTemplate(ABC):
         """
         return self.send_order(vt_symbol, Direction.LONG, Offset.CLOSE, price, volume, lock, net)
 
+    def post_buy(self, vt_symbol: str, price: float, volume: float, lock: bool = False, net: bool = False) -> List[str]:
+        """
+        Send buy order to open a long position.
+        """
+        return self.send_post_order(vt_symbol, Direction.LONG, Offset.OPEN, price, volume, lock, net)
+
+    def post_short(self, vt_symbol: str, price: float, volume: float, lock: bool = False, net: bool = False) -> List[str]:
+        """
+        Send short order to open as short position.
+        """
+        return self.send_post_order(vt_symbol, Direction.SHORT, Offset.OPEN, price, volume, lock, net)
+
+
     def send_order(
         self,
         vt_symbol: str,
@@ -189,6 +202,31 @@ class StrategyTemplate(ABC):
         """
         if self.trading:
             vt_orderids = self.strategy_engine.send_order(
+                self, vt_symbol, direction, offset, price, volume, lock, net
+            )
+
+            for vt_orderid in vt_orderids:
+                self.active_orderids.add(vt_orderid)
+
+            return vt_orderids
+        else:
+            return []
+
+    def send_post_order(
+        self,
+        vt_symbol: str,
+        direction: Direction,
+        offset: Offset,
+        price: float,
+        volume: float,
+        lock: bool = False,
+        net: bool = False,
+    ) -> List[str]:
+        """
+        Send a new order.
+        """
+        if self.trading:
+            vt_orderids = self.strategy_engine.send_post_order(
                 self, vt_symbol, direction, offset, price, volume, lock, net
             )
 

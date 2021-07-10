@@ -226,6 +226,66 @@ class StrategyEngine(BaseEngine):
 
         return vt_orderids
 
+    def send_post_order(
+        self,
+        strategy: StrategyTemplate,
+        vt_symbol: str,
+        direction: Direction,
+        offset: Offset,
+        price: float,
+        volume: float,
+        lock: bool,
+        net: bool,
+    ):
+        """
+        Send a new order to server.
+        """
+        contract: ContractData = self.main_engine.get_contract(vt_symbol)
+        if not contract:
+            self.write_log(f"委托失败，找不到合约：{vt_symbol}", strategy)
+            return ""
+
+        # Round order price and volume to nearest incremental value
+        price = round_to(price, contract.pricetick)
+        volume = round_to(volume, contract.min_volume)
+
+        # Create request and send order.
+        original_req = OrderRequest(
+            symbol=contract.symbol,
+            exchange=contract.exchange,
+            direction=direction,
+            offset=offset,
+            type=OrderType.POST_ONLY,
+            price=price,
+            volume=volume,
+            reference=f"{APP_NAME}_{strategy.strategy_name}"
+        )
+
+        # Convert with offset converter
+        req_list = self.offset_converter.convert_order_request(original_req, lock, net)
+
+        # Send Orders
+        vt_orderids = []
+
+        for req in req_list:
+            req.reference = strategy.strategy_name      # Add strategy name as order reference
+
+            vt_orderid = self.main_engine.send_order(
+                req, contract.gateway_name)
+
+            # Check if sending order successful
+            if not vt_orderid:
+                continue
+
+            vt_orderids.append(vt_orderid)
+
+            self.offset_converter.update_order_request(req, vt_orderid)
+
+            # Save relationship between orderid and strategy.
+            self.orderid_strategy_map[vt_orderid] = strategy
+
+        return vt_orderids
+
     def cancel_order(self, strategy: StrategyTemplate, vt_orderid: str):
         """
         """
