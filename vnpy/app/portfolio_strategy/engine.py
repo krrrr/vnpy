@@ -28,7 +28,8 @@ from vnpy.trader.event import (
     EVENT_TICK,
     EVENT_ORDER,
     EVENT_TRADE,
-    EVENT_POSITION
+    EVENT_POSITION,
+    EVENT_BAR
 )
 from vnpy.trader.constant import (
     Direction,
@@ -94,6 +95,7 @@ class StrategyEngine(BaseEngine):
         self.event_engine.register(EVENT_ORDER, self.process_order_event)
         self.event_engine.register(EVENT_TRADE, self.process_trade_event)
         self.event_engine.register(EVENT_POSITION, self.process_position_event)
+        self.event_engine.register(EVENT_BAR, self.process_bar_event)
 
     def init_rqdata(self):
         """
@@ -165,6 +167,18 @@ class StrategyEngine(BaseEngine):
         position: PositionData = event.data
 
         self.offset_converter.update_position(position)
+
+    def process_bar_event(self, event: Event):
+        """"""
+        bar: BarData = event.data
+
+        strategies = self.symbol_strategy_map[bar.vt_symbol]
+        if not strategies:
+            return
+
+        for strategy in strategies:
+            if strategy.inited:
+                self.call_strategy_func(strategy, strategy.on_bar_update, bar)
 
     def send_order(
         self,
@@ -456,7 +470,7 @@ class StrategyEngine(BaseEngine):
             contract: ContractData = self.main_engine.get_contract(vt_symbol)
             if contract:
                 req = SubscribeRequest(
-                    symbol=contract.symbol, exchange=contract.exchange)
+                    symbol=contract.symbol, exchange=contract.exchange, kline_interval=strategy.subscribe_kline_type)
                 self.main_engine.subscribe(req, contract.gateway_name)
             else:
                 self.write_log(f"行情订阅失败，找不到合约{vt_symbol}", strategy)

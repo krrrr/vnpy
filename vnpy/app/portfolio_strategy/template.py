@@ -37,6 +37,7 @@ class StrategyTemplate(ABC):
 
         self.orders: Dict[str, OrderData] = {}
         self.active_orderids: Set[str] = set()
+        self.subscribe_kline_type: Interval = Interval.TICK
 
         # Copy a new variables list here to avoid duplicate insert when multiple
         # strategy instances are created with the same strategy class.
@@ -124,6 +125,14 @@ class StrategyTemplate(ABC):
         Callback of new tick data update.
         """
         pass
+
+    @virtual
+    def on_bar_update(self, bar: BarData) -> None:
+        """
+        Callback of new bar data update.
+        """
+        pass
+
 
     @virtual
     def on_bars(self, bars: Dict[str, BarData]) -> None:

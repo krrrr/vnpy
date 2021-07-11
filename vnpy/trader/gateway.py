@@ -16,6 +16,7 @@ from .event import (
     EVENT_CONTRACT,
     EVENT_LOG,
     EVENT_QUOTE,
+    EVENT_BAR
 )
 from .object import (
     TickData,
@@ -140,6 +141,10 @@ class BaseGateway(ABC):
         """
         self.on_event(EVENT_QUOTE, quote)
         self.on_event(EVENT_QUOTE + quote.vt_symbol, quote)
+
+    def on_bar(self, bar: BarData) -> None:
+        self.on_event(EVENT_BAR, bar)
+        self.on_event(EVENT_BAR + bar.vt_symbol, bar)
 
     def on_log(self, log: LogData) -> None:
         """

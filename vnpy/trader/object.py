@@ -298,6 +298,7 @@ class SubscribeRequest:
 
     symbol: str
     exchange: Exchange
+    kline_interval: Interval = Interval.TICK
 
     def __post_init__(self):
         """"""

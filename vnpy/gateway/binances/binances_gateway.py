@@ -913,6 +913,7 @@ class BinancesDataWebsocketApi(WebsocketClient):
         self.gateway_name: str = gateway.gateway_name
 
         self.ticks: Dict[str, TickData] = {}
+        self.bars: Dict[str, BarData] = {}
         self.usdt_base = False
 
     def connect(
@@ -948,6 +949,15 @@ class BinancesDataWebsocketApi(WebsocketClient):
         )
         self.ticks[req.symbol.lower()] = tick
 
+        if req.kline_interval != Interval.TICK:
+            bar = BarData(
+                symbol=req.symbol,
+                exchange=Exchange.BINANCE,
+                datetime=datetime.now(CHINA_TZ),
+                gateway_name=self.gateway_name
+            )
+            self.bars[req.symbol.lower()] = bar
+
         # Close previous connection
         if self._active:
             self.stop()
@@ -958,6 +968,12 @@ class BinancesDataWebsocketApi(WebsocketClient):
         for ws_symbol in self.ticks.keys():
             channels.append(ws_symbol + "@ticker")
             channels.append(ws_symbol + "@depth5")
+            if req.kline_interval == Interval.MINUTE:
+                channels.append(ws_symbol + "@kline_1m")
+            elif req.kline_interval == Interval.HOUR:
+                channels.append(ws_symbol + "@kline_1h")
+            elif req.kline_interval == Interval.DAILY:
+                channels.append(ws_symbol + "@kline_1d")
 
         if self.server == "REAL":
             url = F_WEBSOCKET_DATA_HOST + "/".join(channels)
@@ -986,6 +1002,37 @@ class BinancesDataWebsocketApi(WebsocketClient):
             tick.low_price = float(data['l'])
             tick.last_price = float(data['c'])
             tick.datetime = generate_datetime(float(data['E']))
+        elif channel.startswith('kline'):
+            # "k": {
+            # "t": 123400000, // 这根K线的起始时间
+            # "T": 123460000, // 这根K线的结束时间
+            # "s": "BNBUSDT", // 交易对
+            # "i": "1m", // K线间隔
+            # "f": 100, // 这根K线期间第一笔成交ID
+            # "L": 200, // 这根K线期间末一笔成交ID
+            # "o": "0.0010", // 这根K线期间第一笔成交价
+            # "c": "0.0020", // 这根K线期间末一笔成交价
+            # "h": "0.0025", // 这根K线期间最高成交价
+            # "l": "0.0015", // 这根K线期间最低成交价
+            # "v": "1000", // 这根K线期间成交量
+            # "n": 100, // 这根K线期间成交笔数
+            # "x": false, // 这根K线是否完结(是否已经开始下一根K线)
+            # "q": "1.0000", // 这根K线期间成交额
+            # "V": "500", // 主动买入的成交量
+            # "Q": "0.500", // 主动买入的成交额
+            # "B": "123456" // 忽略此参数
+            kline_data = data['k']
+            if kline_data['x'] and symbol in self.bars:
+                bar = self.bars[symbol]
+                bar.volume = float(kline_data['v'])
+                bar.open_price = float(kline_data['o'])
+                bar.high_price = float(kline_data['h'])
+                bar.low_price = float(kline_data['l'])
+                bar.close_price = float(kline_data['c'])
+                bar.datetime = generate_datetime(float(kline_data['t']))
+                self.gateway.on_bar(bar)
+
+            return
         else:
             bids = data["b"]
             for n in range(min(5, len(bids))):
