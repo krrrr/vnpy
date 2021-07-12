@@ -33,7 +33,7 @@ class StrategyTemplate(ABC):
 
         self.inited: bool = False
         self.trading: bool = False
-        self.pos: Dict[str, int] = defaultdict(int)
+        self.pos: Dict[str, float] = defaultdict(float)
 
         self.orders: Dict[str, OrderData] = {}
         self.active_orderids: Set[str] = set()
@@ -260,7 +260,7 @@ class StrategyTemplate(ABC):
         for vt_orderid in list(self.active_orderids):
             self.cancel_order(vt_orderid)
 
-    def get_pos(self, vt_symbol: str) -> int:
+    def get_pos(self, vt_symbol: str) -> float:
         """"""
         return self.pos.get(vt_symbol, 0)
 
@@ -268,7 +268,7 @@ class StrategyTemplate(ABC):
         """"""
         return self.orders.get(vt_orderid, None)
 
-    def get_all_active_orderids(self) -> List[OrderData]:
+    def get_all_active_orderids(self) -> List[str]:
         """"""
         return list(self.active_orderids)
 

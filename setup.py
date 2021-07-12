@@ -300,13 +300,14 @@ def get_ext_modules():
     elif platform.system() == "Darwin":
         ext_modules = []
     else:
-        ext_modules = [
-            vnxtptd, vnxtpmd,
-            vnsgittd, vnsgitmd,
-            vnksgoldmd, vnksgoldtd,
-            vnnhmd, vnnhfutures, vnnhstock,
-            vnrohontd, vnrohonmd,
-        ]
+        ext_modules = []
+        #ext_modules = [
+        #    vnxtptd, vnxtpmd,
+        #    vnsgittd, vnsgitmd,
+        #    vnksgoldmd, vnksgoldtd,
+        #    vnnhmd, vnnhfutures, vnnhstock,
+        #    vnrohontd, vnrohonmd,
+        #]
 
     ext_modules = check_extension_build_flag(
         ext_modules, "VNPY_BUILD_XTP", vnxtptd)
